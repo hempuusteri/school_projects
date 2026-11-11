@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <meta charset="utf-8" />
+  <!-- Leaflet CSS for map styling-->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <!-- Leaflet JavaScript library-->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- Styling map and clock-->
+  <style>
+    body {
+      margin: 0;
+    }
+
+    #clock {
+      position: absolute;
+      left: 50px;
+      z-index: 1000;
+      background: white;
+      padding: 10px;
+      font-size: 18px;
+      font-family: monospace;
+    }
+
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+
+    /*CSS class for ship icon*/
+    .ship {
+      font-size: 20px;
+      transform-origin: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="clock"></div>
+  <div id="map"></div>
+
+  <script>
+
+    // Running clock
+    setInterval(() => {
+      const now = new Date();
+      const time = now.toLocaleTimeString();
+      const date = now.toLocaleDateString();
+      document.getElementById("clock").innerText = date + " " + time;
+    }, 1000)
+
+  </script>
+
+  <script>
+
+    //Map initialization
+    //Create a Leaflet map with center coordinates and zoom level 7
+    const map = L.map('map').setView([60.17, 24.94], 7);
+
+    //Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    //Ship markers storage
+    //Object used to store markets by MMSI
+    let markers = {};
+
+    //Creates a rotated ship icon based on course over ground (cog)
+    function shipIcon(cog) {
+      return L.divIcon({
+        className: "ship",
+        html: `<div style="transform: rotate(${cog - 90}deg)">➤</div>`,
+        iconSize: [10, 10]
+      });
+    }
+
+    //Load ship data from API
+    async function loadShips() {
+
+      //Request ship data from backend API
+      const res = await fetch("http://127.0.0.1:3000/api/ships", { mode: 'cors' });
+      //Convert response to JSON
+      const ships = await res.json();
+
+      //Loop through all ships returned by the API
+      ships.forEach(ship => {
+
+        const lat = ship.lat;
+        const lon = ship.lon;
+        const cog = ship.cog || 0;
+
+        //Update existing marker
+        //If marker already exists, update position and direction
+        if (markers[ship.mmsi]) {
+          markers[ship.mmsi].setLatLng([lat, lon]);
+          markers[ship.mmsi].setIcon(shipIcon(cog));
+        } else {
+          //If markes does not exist yet, create a new one
+          //Popup information when clicking ship (name and mmsi)
+          markers[ship.mmsi] = L.marker([lat, lon], { icon: shipIcon(cog) }).addTo(map)
+            .bindPopup(`<b>${ship.name || "Unknown vessel"}</b><br>MMSI: ${ship.mmsi}<br>`);
+        }
+      });
+    }
+
+    //Load ships when page opens
+    loadShips();
+    //Refresh positions every 3 seconds
+    setInterval(loadShips, 3000);
+
+  </script>
+</body>
+
+</html>

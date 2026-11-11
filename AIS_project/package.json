@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "pg": "^8.18.0",
+    "ws": "^8.19.0"
+  },
+  "name": "dep_26_group_16",
+  "version": "1.0.0",
+  "description": "To make it easy for you to get started with GitLab, here's a list of recommended next steps.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@git.dc.turkuamk.fi:henna.heino/dep_26_group_16.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
